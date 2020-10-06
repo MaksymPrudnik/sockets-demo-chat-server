@@ -19,18 +19,18 @@ io.on('connection', () => {
     console.log('Sockets connected')
 })
 
-io.on('connect', sockets => {
+io.on('connect', socket => {
 
-    sockets.on('new message', (msg) => {
+    socket.on('new message', (msg) => {
         if (!msg.username || !msg.message ) {
-            return sockets.emit('message fail', 'Invalid message')
+            return socket.emit('message fail', 'Invalid message')
         };
         const newMessage = { ...msg, createdAt: new Date().toLocaleString()}
         messages.push(newMessage);
-        return sockets.emit('message added', newMessage);
+        return io.emit('message added', newMessage);
     })
 
-    sockets.on('disconnect', () => console.log('user disconnected'))
+    socket.on('disconnect', () => console.log('user disconnected'))
 })
 
 const messages = [];
