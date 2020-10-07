@@ -13,6 +13,8 @@ const server = app.listen(PORT, () => {
     console.log(`app running on port ${PORT}`)
 })
 
+const messages = {};
+
 const io = socket(server);
 
 io.on('connection', () => {
@@ -21,19 +23,23 @@ io.on('connection', () => {
 
 io.on('connect', socket => {
 
+    socket.on('new channel', channel => {
+        if (!channel || messages.hasOwnProperty(channel)) return socket.emit('error chanel', 'Invalid chanel or already exist');
+        messages[channel] = [];
+        io.emit('channel added', channel);
+    })
+
     socket.on('new message', (msg) => {
-        if (!msg.username || !msg.message ) {
+        if (!msg.channel || !msg.body.username || !msg.body.message ) {
             return socket.emit('message fail', 'Invalid message')
         };
-        const newMessage = { ...msg, createdAt: new Date().toLocaleString()}
-        messages.push(newMessage);
-        return io.emit('message added', newMessage);
+        const newMessage = { ...msg.body, createdAt: new Date().toLocaleString()}
+        messages[msg.channel].push(newMessage);
+        return io.emit('message added', [msg.channel, newMessage]);
     })
 
     socket.on('disconnect', () => console.log('user disconnected'))
 })
-
-const messages = [];
 
 app.get('/', (req, res) => res.send('hello world'));
 app.get('/get-messages', (req, res) => {
