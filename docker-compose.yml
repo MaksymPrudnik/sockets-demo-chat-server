@@ -1,0 +1,26 @@
+version: "3.8"
+
+services: 
+    # Server
+    sockets-server:
+        container_name: sockets-server
+        build: ./
+        command: npm run dev
+        working_dir: /usr/src/sockets-server
+        environment: 
+            DATABASE_URL: postgres://dev:secret@postgres:5432/sockets-docker
+        ports: 
+            - "5000:5000"
+        volumes: 
+            - ./:/usr/src/sockets-server
+    
+    # Postgres
+    postgres:
+        build: ./postgres
+        environment: 
+            POSTGRES_USER: dev
+            POSTGRES_PASSWORD: secret
+            POSTGRES_DB: sockets-docker
+            POSTGRES_HOST: postgres
+        ports: 
+            - "5432:5432"
