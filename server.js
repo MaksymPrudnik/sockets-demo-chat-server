@@ -1,6 +1,22 @@
 const express = require('express');
 const socket = require('socket.io');
 const cors = require('cors');
+const knex = require('knex');
+const aws = require('aws-sdk');
+const dotenv = require('dotenv');
+
+const channels = require('./controllers/channels');
+const messages = require('./controllers/messages');
+const awsS3 = require('./controllers/awsS3');
+
+dotenv.config()
+
+const db = knex({
+    client: 'pg',
+    connection: process.env.DATABASE_URL
+})
+
+aws.config.region = 'eu-central-1';
 
 const app = express();
 
@@ -13,35 +29,16 @@ const server = app.listen(PORT, () => {
     console.log(`app running on port ${PORT}`)
 })
 
-const messages = {};
-
 const io = socket(server);
 
-io.on('connection', () => {
-    console.log('Sockets connected')
-})
-
 io.on('connect', socket => {
+    socket.on('load channels', () => channels.getChannels(socket, db))
 
-    socket.on('new channel', channel => {
-        if (!channel || messages.hasOwnProperty(channel)) return socket.emit('error chanel', 'Invalid chanel or already exist');
-        messages[channel] = [];
-        io.emit('channel added', channel);
-    })
+    socket.on('new channel', channel => channels.addChannel(channel, socket, io, db))
 
-    socket.on('new message', (msg) => {
-        if (!msg.channel || !msg.body.username || !msg.body.message ) {
-            return socket.emit('message fail', 'Invalid message')
-        };
-        const newMessage = { ...msg.body, createdAt: new Date().toLocaleString()}
-        messages[msg.channel].push(newMessage);
-        return io.emit('message added', [msg.channel, newMessage]);
-    })
+    socket.on('new message', (msg) => messages.addMessages(msg, socket, io, db))
 
-    socket.on('disconnect', () => console.log('user disconnected'))
+    socket.on('load messages', ({count, channel}) => messages.getMessages(count, channel, socket, db))
 })
 
-app.get('/', (req, res) => res.send('hello world'));
-app.get('/get-messages', (req, res) => {
-    res.json(messages);
-})
+app.get('/sign-s3', (req, res) => awsS3.handleSignS3(req, res, aws));
