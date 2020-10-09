@@ -9,6 +9,7 @@ services:
         working_dir: /usr/src/sockets-server
         environment: 
             DATABASE_URL: postgres://dev:secret@postgres:5432/sockets-docker
+            NODE_ENV: development
         ports: 
             - "5000:5000"
         volumes: 
