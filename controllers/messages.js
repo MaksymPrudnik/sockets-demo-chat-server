@@ -12,7 +12,7 @@ const getMessages = async (count, channel, socket, db) => {
 }
 
 const addMessages = async (message, socket, io, db) => {
-    if (!message.channel || !message.body.username || !message.body.message ) {
+    if (!message.channel || !message.body.username || (!message.body.message && !message.body.img) ) {
         return socket.emit('message fail', 'Invalid message')
     };
     const messages = await db('messages')
