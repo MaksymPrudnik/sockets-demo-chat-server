@@ -8,7 +8,6 @@ jobs:
             - run: echo "installing packages"
             - run: npm install
             - run: CI=true
-
     test:
         docker:
             - image: circleci/node
