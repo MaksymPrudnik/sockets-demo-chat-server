@@ -16,7 +16,7 @@ jobs:
             - run: echo "starting test"
             - run: npm install
             - run: npm test
-workflow:
+workflows:
     version: 2
     build_test:
         jobs:
