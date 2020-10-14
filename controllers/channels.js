@@ -4,6 +4,7 @@ const getChannels = async (socket, db) => {
 }
 
 const addChannel = async (channel, socket, io, db) => {
+    if (!socket || !io || !db) throw new Error('Dependencies error')
     if (!channel) return socket.emit('error chanel', 'Invalid request');
     const isChannelExist = await db('channels').where('name', channel).then(channels => Boolean(channels.length))
     if (isChannelExist) return socket.emit('error chanel', 'Channel already exist');
